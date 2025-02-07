@@ -1,5 +1,6 @@
 To do -------------------------------------------------------------------
 
+O rate limiter deve permitir a configuração do número máximo de requisições permitidas por segundo.
 injetar o middleware
 Strategy para injetar o Redis
 
@@ -10,5 +11,6 @@ Doing -------------------------------------------------------------------
 Done  -------------------------------------------------------------------
 
 Carregando variáveis de ambiente
+O servidor web deve responder na porta 8080.
 
 
