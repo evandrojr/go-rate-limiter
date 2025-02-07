@@ -5,20 +5,24 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/spf13/viper"
 )
 
-type conf struct {
-	DBDriver          string `mapstructure:"DB_DRIVER"`
-	DBHost            string `mapstructure:"DB_HOST"`
-	DBPort            string `mapstructure:"DB_PORT"`
-	DBUser            string `mapstructure:"DB_USER"`
-	DBPassword        string `mapstructure:"DB_PASSWORD"`
-	DBName            string `mapstructure:"DB_NAME"`
-	WebServerPort     string `mapstructure:"WEB_SERVER_PORT"`
-	GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
-	GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
+type config struct {
+	// DBDriver          string `mapstructure:"DB_DRIVER"`
+	// DBHost            string `mapstructure:"DB_HOST"`
+	// DBPort            string `mapstructure:"DB_PORT"`
+	// DBUser            string `mapstructure:"DB_USER"`
+	// DBPassword        string `mapstructure:"DB_PASSWORD"`
+	// DBName            string `mapstructure:"DB_NAME"`
+	// WebServerPort     string `mapstructure:"WEB_SERVER_PORT"`
+	// GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
+	// GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
+	Tokens map[string]int
 }
+
+var Config config
 
 // func LoadConfig(path string) (*conf, error) {
 // 	var cfg *conf
@@ -43,19 +47,21 @@ func LoadConfig() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("Erro ao carregar o .env: %s", err))
+		panic(fmt.Errorf("erro ao carregar o .env: %s", err))
 	}
 
 	// Ler o valor do MY_MAP
-	rawMap := viper.GetString("IPS")
+	rawMap := viper.GetString("TOKENS")
 
 	// Converter para map[string]int
 	parsedMap, parseErr := parseStringToMapInt(rawMap)
 	if parseErr != nil {
-		panic(fmt.Errorf("Erro ao converter IPS: %s", parseErr))
+		panic(fmt.Errorf("erro ao converter IPs: %s", parseErr))
 	}
 
-	fmt.Printf("Mapa: %+v\n", parsedMap)
+	// fmt.Printf("Mapa: %+v\n", parsedMap)
+	Config.Tokens = parsedMap
+	pretty.Println(Config)
 }
 
 // Função para converter string delimitada para map[string]int
