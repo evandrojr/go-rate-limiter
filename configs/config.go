@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,27 +21,10 @@ type config struct {
 	// GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
 	// GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
 	Tokens map[string]int
+	IP     int
 }
 
 var Config config
-
-// func LoadConfig(path string) (*conf, error) {
-// 	var cfg *conf
-// 	viper.SetConfigName("app_config")
-// 	viper.SetConfigType("env")
-// 	viper.AddConfigPath(path)
-// 	viper.SetConfigFile(".env")
-// 	viper.AutomaticEnv()
-// 	err := viper.ReadInConfig()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	err = viper.Unmarshal(&cfg)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return cfg, err
-// }
 
 func LoadConfig() {
 	// Configurar o Viper para ler o .env
@@ -49,6 +33,11 @@ func LoadConfig() {
 	if err != nil {
 		panic(fmt.Errorf("erro ao carregar o .env: %s", err))
 	}
+
+	Config.IP = viper.GetInt("IP")
+	// fmt.Println(IP)
+	os.Exit(1)
+	// expvar.NewString("IP").Set(strconv.Itoa(IP))
 
 	// Ler o valor do MY_MAP
 	rawMap := viper.GetString("TOKENS")
