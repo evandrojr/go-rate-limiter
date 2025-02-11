@@ -21,7 +21,7 @@ type config struct {
 	// GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
 	// GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
 	Tokens map[string]int
-	IP     int
+	Ip     int
 }
 
 var Config config
@@ -34,7 +34,7 @@ func LoadConfig() {
 		panic(fmt.Errorf("erro ao carregar o .env: %s", err))
 	}
 
-	Config.IP = viper.GetInt("IP")
+	Config.Ip = viper.GetInt("IP")
 	// fmt.Println(IP)
 	os.Exit(1)
 	// expvar.NewString("IP").Set(strconv.Itoa(IP))

@@ -1,5 +1,6 @@
 To do -------------------------------------------------------------------
 
+Fazer funcionar
 O rate limiter deve permitir a configuração do número máximo de requisições permitidas por segundo.
 injetar o middleware
 Strategy para injetar o Redis
