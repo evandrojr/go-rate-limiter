@@ -11,13 +11,13 @@ var segundoRegistrado int64
 var Acessos acessos
 
 type acessos struct {
-	Ip     map[string]int
+	Ip     int
 	Tokens map[string]int
 }
 
 func Init() {
 	Acessos = acessos{
-		Ip:     make(map[string]int),
+		Ip:     int,
 		Tokens: make(map[string]int),
 	}
 	segundoRegistrado = time.Now().Unix()
@@ -26,12 +26,12 @@ func Init() {
 func RegistraAcessoIp(segundo int64, ip string) error {
 	if segundo != segundoRegistrado {
 		segundoRegistrado = segundo
-		Acessos.Ip = make(map[string]int)
+		Acessos.Ip = int
 	}
-	if Acessos.Ip[ip] > configs.Config.Ip {
+	if Acessos.Ip > configs.Config.Ip {
 		return errors.New("limite de acessos por IP excedido para o IP: " + ip)
 	}
-	Acessos.Ip[ip]++
+	Acessos.Ip++
 	return nil
 }
 
