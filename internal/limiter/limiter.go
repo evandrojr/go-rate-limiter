@@ -28,7 +28,8 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 		segundoRegistrado = segundo
 		Acessos.Ip = make(map[string]int)
 	}
-	if Acessos.Ip[ip] > configs.Config.Ip {
+	println("Acessos.Ip[ip]", Acessos.Ip[ip])
+	if Acessos.Ip[ip] >= configs.Config.Ip {
 		return errors.New("limite de acessos por IP excedido para o IP: " + ip)
 	}
 	Acessos.Ip[ip]++
@@ -40,7 +41,7 @@ func RegistraAcessoToken(segundo int64, token string) error {
 		segundoRegistrado = segundo
 		Acessos.Tokens = make(map[string]int)
 	}
-	if Acessos.Tokens[token] > configs.Config.Tokens[token] {
+	if Acessos.Tokens[token] >= configs.Config.Tokens[token] {
 		return errors.New("limite de acessos por token excedido para o token: " + token)
 	}
 	Acessos.Tokens[token]++
