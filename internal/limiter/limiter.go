@@ -2,6 +2,7 @@ package limiter
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/evandrojr/ratelimiter/configs"
@@ -9,6 +10,7 @@ import (
 
 var segundoRegistrado int64
 var Acessos acessos
+var tokenNotFound = "TOKEN_NOT_FOUND"
 
 type acessos struct {
 	Ip     map[string]int
@@ -21,6 +23,17 @@ func Init() {
 		Tokens: make(map[string]int),
 	}
 	segundoRegistrado = time.Now().Unix()
+}
+
+func ValidaAcesso(segundo int64, ip string, token string) error {
+	RegistraAcessoTokenErr := RegistraAcessoToken(segundo, token)
+	if RegistraAcessoTokenErr != nil && RegistraAcessoTokenErr.Error() == tokenNotFound {
+		errRegistraAcessoIp := RegistraAcessoIp(segundo, ip)
+		if errRegistraAcessoIp != nil {
+			return errRegistraAcessoIp
+		}
+	}
+	return RegistraAcessoTokenErr
 }
 
 func RegistraAcessoIp(segundo int64, ip string) error {
@@ -37,6 +50,10 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 }
 
 func RegistraAcessoToken(segundo int64, token string) error {
+	if configs.Config.Tokens[token] == 0 {
+		log.Println(tokenNotFound)
+		return errors.New(tokenNotFound)
+	}
 	if segundo != segundoRegistrado {
 		segundoRegistrado = segundo
 		Acessos.Tokens = make(map[string]int)
