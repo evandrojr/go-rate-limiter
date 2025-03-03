@@ -2,7 +2,6 @@ package configs
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -31,12 +30,13 @@ func LoadConfig() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("erro ao carregar o .env: %s", err))
+		fmt.Println("erro ao carregar o .env:")
+		panic("erro ao carregar o .env:")
 	}
 
 	Config.Ip = viper.GetInt("IP")
-	// fmt.Println(IP)
-	os.Exit(1)
+	fmt.Println(Config.Ip)
+	// os.Exit(1)
 	// expvar.NewString("IP").Set(strconv.Itoa(IP))
 
 	// Ler o valor do MY_MAP

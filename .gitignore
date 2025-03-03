@@ -1,3 +1,5 @@
+limiter
+
 __debug*
 _debug*
 
@@ -21,7 +23,7 @@ _debug*
 # vendor/
 
 # Go workspace file
-go.work
+go.workgo
 go.work.sum
 
 # env file
