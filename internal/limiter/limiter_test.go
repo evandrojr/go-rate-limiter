@@ -4,7 +4,40 @@ import (
 	"testing"
 
 	"github.com/evandrojr/ratelimiter/configs"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestValidaPorToken(t *testing.T) {
+	Init()
+	segundoRegistrado = int64(1)
+	segundo := int64(1)
+	configs.Config.Ip = 1
+	configs.Config.Tokens = map[string]int{"A": 1}
+	ip := "192.168.1.1"
+	token := "A"
+	v := ValidaAcesso(segundo, ip, token)
+	assert.Nil(t, v)
+	v = ValidaAcesso(segundo, ip, token)
+	assert.Contains(t, v.Error(), exceedTokenLimit, "Erro segundo acesso")
+	v = ValidaAcesso(segundo, ip, token)
+	assert.Contains(t, v.Error(), exceedTokenLimit)
+}
+
+func TestValidaPorIP(t *testing.T) {
+	Init()
+	segundoRegistrado = int64(1)
+	segundo := int64(1)
+	configs.Config.Ip = 1
+	configs.Config.Tokens = map[string]int{"A": 10}
+	ip := "192.168.1.1"
+	token := "Outro"
+	v := ValidaAcesso(segundo, ip, token)
+	assert.Nil(t, v)
+	v = ValidaAcesso(segundo, ip, token)
+	assert.Contains(t, v.Error(), exceedIpLimit)
+	v = ValidaAcesso(segundo, ip, token)
+	assert.Contains(t, v.Error(), exceedIpLimit)
+}
 
 func TestMesmoSegundoAcessoIpLiberado(t *testing.T) {
 	Init()

@@ -11,6 +11,8 @@ import (
 var segundoRegistrado int64
 var Acessos acessos
 var tokenNotFound = "TOKEN_NOT_FOUND"
+var exceedIpLimit = "limite de acessos por IP excedido para o IP: "
+var exceedTokenLimit = "limite de acessos por token excedido para o token: "
 
 type acessos struct {
 	Ip     map[string]int
@@ -28,10 +30,7 @@ func Init() {
 func ValidaAcesso(segundo int64, ip string, token string) error {
 	RegistraAcessoTokenErr := RegistraAcessoToken(segundo, token)
 	if RegistraAcessoTokenErr != nil && RegistraAcessoTokenErr.Error() == tokenNotFound {
-		errRegistraAcessoIp := RegistraAcessoIp(segundo, ip)
-		if errRegistraAcessoIp != nil {
-			return errRegistraAcessoIp
-		}
+		return RegistraAcessoIp(segundo, ip)
 	}
 	return RegistraAcessoTokenErr
 }
@@ -43,7 +42,7 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 	}
 	println("Acessos.Ip[ip]", Acessos.Ip[ip])
 	if Acessos.Ip[ip] >= configs.Config.Ip {
-		return errors.New("limite de acessos por IP excedido para o IP: " + ip)
+		return errors.New(exceedIpLimit + ip)
 	}
 	Acessos.Ip[ip]++
 	return nil
@@ -59,7 +58,7 @@ func RegistraAcessoToken(segundo int64, token string) error {
 		Acessos.Tokens = make(map[string]int)
 	}
 	if Acessos.Tokens[token] >= configs.Config.Tokens[token] {
-		return errors.New("limite de acessos por token excedido para o token: " + token)
+		return errors.New(exceedTokenLimit + token)
 	}
 	Acessos.Tokens[token]++
 	return nil
