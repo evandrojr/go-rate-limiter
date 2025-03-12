@@ -1,11 +1,11 @@
-package limiter
+package limiterstrategy
 
 import (
 	"errors"
 	"log"
 	"time"
 
-	"github.com/evandrojr/ratelimiter/configs"
+	"github.com/evandrojr/go-rate-limiter/configs"
 )
 
 var segundoRegistrado int64
@@ -25,6 +25,10 @@ func Init() {
 		Tokens: make(map[string]int),
 	}
 	segundoRegistrado = time.Now().Unix()
+}
+
+func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
+	return ValidaAcesso(segundoRegistrado, ip, token)
 }
 
 func ValidaAcesso(segundo int64, ip string, token string) error {

@@ -6,18 +6,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/evandrojr/ratelimiter/configs"
-	"github.com/evandrojr/ratelimiter/internal/limiter"
+	"github.com/evandrojr/go-rate-limiter/configs"
+	limiterstrategy "github.com/evandrojr/go-rate-limiter/internal/limiter_strategy"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/kr/pretty"
 )
 
+var estrategiaEscolhida limiterstrategy.LimiterStrategyI
+
+const TOKEN_KEY = "Apt-Key"
+
 func main() {
 
 	configs.LoadConfig()
 
-	limiter.Init()
+	limiterstrategy.Init()
+
+	estrategiaEscolhida = limiterstrategy.LimiterStrategyStruct{}
 
 	r := chi.NewRouter()
 
@@ -46,7 +53,8 @@ func RequestLogger(next http.Handler) http.Handler {
 		pretty.Println(r.Header, r.RemoteAddr, r.Referer())
 		segundoRegistrado := time.Now().Unix()
 		ip := strings.Split(r.RemoteAddr, ":")[0]
-		validaAcesso := limiter.ValidaAcesso(segundoRegistrado, ip, r.Header["Token"][0])
+		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida, segundoRegistrado, ip, r.Header[TOKEN_KEY][0])
+
 		log.Println(validaAcesso)
 		next.ServeHTTP(w, r)
 	})

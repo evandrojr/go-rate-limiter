@@ -1,9 +1,9 @@
-package limiter
+package limiterstrategy
 
 import (
 	"testing"
 
-	"github.com/evandrojr/ratelimiter/configs"
+	"github.com/evandrojr/go-rate-limiter/configs"
 	"github.com/stretchr/testify/assert"
 )
 
