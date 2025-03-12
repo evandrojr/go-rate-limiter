@@ -14,17 +14,15 @@ import (
 	"github.com/kr/pretty"
 )
 
-var estrategiaEscolhida limiterstrategy.LimiterStrategyI
-
 const TOKEN_KEY = "Apt-Key"
 
+var estrategiaEscolhida limiterstrategy.TipoEstrategiaStruct
+
 func main() {
-
 	configs.LoadConfig()
-
 	limiterstrategy.Init()
 
-	estrategiaEscolhida = limiterstrategy.LimiterStrategyStruct{}
+	estrategiaEscolhida.SetStrategy(limiterstrategy.LimiterStrategyStruct{})
 
 	r := chi.NewRouter()
 
@@ -53,8 +51,15 @@ func RequestLogger(next http.Handler) http.Handler {
 		pretty.Println(r.Header, r.RemoteAddr, r.Referer())
 		segundoRegistrado := time.Now().Unix()
 		ip := strings.Split(r.RemoteAddr, ":")[0]
-		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida, segundoRegistrado, ip, r.Header[TOKEN_KEY][0])
-
+		estrat := estrategiaEscolhida.GetStrategy()
+		token := ""
+		for k, v := range r.Header {
+			if strings.EqualFold(k, TOKEN_KEY) {
+				token = v[0]
+				break
+			}
+		}
+		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrat, segundoRegistrado, ip, token)
 		log.Println(validaAcesso)
 		next.ServeHTTP(w, r)
 	})

@@ -10,12 +10,16 @@ func ValidaAcessoPolimorfico(estrategia LimiterStrategyI, segundoRegistrado int6
 	return estrategia.ValidaAcesso(segundoRegistrado, ip, token)
 }
 
-//)
+type TipoEstrategiaStruct struct {
+	estrategy LimiterStrategyI
+}
 
-// func (l limiterstrategy) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
+// Permite definir a estratégia a ser utilizada.
+func (e *TipoEstrategiaStruct) SetStrategy(strategy LimiterStrategyI) {
+	e.estrategy = strategy
+}
 
-// }
-
-// func NewLimiterStrategy() LimiterStrategy {
-// 	return &limiterstrategy{}
-// }
+// Permite definir a estratégia a ser utilizada.
+func (e *TipoEstrategiaStruct) GetStrategy() LimiterStrategyI {
+	return e.estrategy
+}
