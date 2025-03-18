@@ -14,17 +14,26 @@ var tokenNotFound = "TOKEN_NOT_FOUND"
 var exceedIpLimit = "limite de acessos por IP excedido para o IP: "
 var exceedTokenLimit = "limite de acessos por token excedido para o token: "
 
-type acessos struct {
-	Ip     map[string]int
-	Tokens map[string]int
+type acessoRecord struct {
+	NumeroAcessosNoSegundo int
+	BloqueadoAte           time.Time
 }
 
-func Init() {
+type acessos struct {
+	Ip     map[string]acessoRecord
+	Tokens map[string]acessoRecord
+}
+
+func Init(configs configs.Config) {
 	Acessos = acessos{
-		Ip:     make(map[string]int),
-		Tokens: make(map[string]int),
+		Ip:     make(map[string]acessoRecord),
+		Tokens: make(map[string]acessoRecord),
 	}
 	segundoRegistrado = time.Now().Unix()
+}
+
+func BloquearIp(ip string) {
+
 }
 
 func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
@@ -45,7 +54,7 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 		Acessos.Ip = make(map[string]int)
 	}
 	println("Acessos.Ip[ip]", Acessos.Ip[ip])
-	if Acessos.Ip[ip] >= configs.Config.Ip {
+	if Acessos.Ip[ip] >= configs.Config.IpMaxReqPerSecond {
 		return errors.New(exceedIpLimit + ip)
 	}
 	Acessos.Ip[ip]++
@@ -53,7 +62,7 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 }
 
 func RegistraAcessoToken(segundo int64, token string) error {
-	if configs.Config.Tokens[token] == 0 {
+	if configs.Config.TokensMaxReqPerSecond[token] == 0 {
 		log.Println(tokenNotFound)
 		return errors.New(tokenNotFound)
 	}
@@ -61,7 +70,7 @@ func RegistraAcessoToken(segundo int64, token string) error {
 		segundoRegistrado = segundo
 		Acessos.Tokens = make(map[string]int)
 	}
-	if Acessos.Tokens[token] >= configs.Config.Tokens[token] {
+	if Acessos.Tokens[token] >= configs.Config.TokensMaxReqPerSecond[token] {
 		return errors.New(exceedTokenLimit + token)
 	}
 	Acessos.Tokens[token]++

@@ -19,8 +19,10 @@ type config struct {
 	// WebServerPort     string `mapstructure:"WEB_SERVER_PORT"`
 	// GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
 	// GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
-	Tokens map[string]int
-	Ip     int
+	TokensMaxReqPerSecond map[string]int
+	IpMaxReqPerSecond     int
+	BlockIpTime           int
+	BlockTokenTime        int
 }
 
 var Config config
@@ -34,13 +36,17 @@ func LoadConfig() {
 		panic("erro ao carregar o .env:")
 	}
 
-	Config.Ip = viper.GetInt("IP")
-	fmt.Println(Config.Ip)
+	Config.IpMaxReqPerSecond = viper.GetInt("REQUESTS_IP_MAX")
+	fmt.Println(Config.IpMaxReqPerSecond)
+
+	Config.BlockIpTime = viper.GetInt("BLOCK_IP_TIME")
+	Config.BlockTokenTime = viper.GetInt("BLOCK_TOKEN_TIME")
+
 	// os.Exit(1)
 	// expvar.NewString("IP").Set(strconv.Itoa(IP))
 
 	// Ler o valor do MY_MAP
-	rawMap := viper.GetString("TOKENS")
+	rawMap := viper.GetString("REQUESTS_TOKEN_MAX")
 
 	// Converter para map[string]int
 	parsedMap, parseErr := parseStringToMapInt(rawMap)
@@ -49,7 +55,7 @@ func LoadConfig() {
 	}
 
 	// fmt.Printf("Mapa: %+v\n", parsedMap)
-	Config.Tokens = parsedMap
+	Config.TokensMaxReqPerSecond = parsedMap
 	pretty.Println(Config)
 }
 
