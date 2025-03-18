@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type config struct {
+type EnvConfig struct {
 	// DBDriver          string `mapstructure:"DB_DRIVER"`
 	// DBHost            string `mapstructure:"DB_HOST"`
 	// DBPort            string `mapstructure:"DB_PORT"`
@@ -25,7 +25,7 @@ type config struct {
 	BlockTokenTime        int
 }
 
-var Config config
+var Config EnvConfig
 
 func LoadConfig() {
 	// Configurar o Viper para ler o .env
