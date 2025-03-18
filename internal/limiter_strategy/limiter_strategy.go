@@ -1,8 +1,11 @@
 package limiterstrategy
 
+import "github.com/evandrojr/go-rate-limiter/configs"
+
 type LimiterStrategyStruct struct{}
 
 type LimiterStrategyI interface {
+	Init(segundoRegistrado int64, configs configs.EnvConfig)
 	ValidaAcesso(segundoRegistrado int64, ip string, token string) error
 }
 

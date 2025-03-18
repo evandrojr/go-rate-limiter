@@ -3,9 +3,10 @@ package limiterstrategy
 import (
 	"errors"
 	"log"
-	"time"
+	"strconv"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
+	"github.com/kr/pretty"
 )
 
 var segundoRegistrado int64
@@ -14,9 +15,11 @@ var tokenNotFound = "TOKEN_NOT_FOUND"
 var exceedIpLimit = "limite de acessos por IP excedido para o IP: "
 var exceedTokenLimit = "limite de acessos por token excedido para o token: "
 
+const LIMITED_MESSAGE = "you have reached the maximum number of requests or actions allowed within a certain time frame"
+
 type acessoRecord struct {
 	NumeroAcessosNoSegundo int
-	BloqueadoAte           time.Time
+	BloqueadoAte           int64
 }
 
 type acessos struct {
@@ -26,35 +29,39 @@ type acessos struct {
 
 var envConfig configs.EnvConfig
 
-func Init(configs configs.EnvConfig) {
+func (l LimiterStrategyStruct) Init(segundoRegistrado int64, configs configs.EnvConfig) {
+	Init(segundoRegistrado, configs)
+}
+
+func Init(_segundoRegistrado int64, configs configs.EnvConfig) {
 	envConfig = configs
 	Acessos = acessos{
 		Ip:     make(map[string]acessoRecord),
 		Tokens: make(map[string]acessoRecord),
 	}
-	segundoRegistrado = time.Now().Unix()
+	segundoRegistrado = _segundoRegistrado
 }
 
-func BloquearIp(ip string) {
+func bloquearIp(segundoAtual int64, ip string) {
 	Acessos.Ip[ip] = acessoRecord{
-		NumeroAcessosNoSegundo: 0,
-		BloqueadoAte:           time.Now().Add(time.Second * time.Duration(envConfig.BlockIpTime)),
+		NumeroAcessosNoSegundo: Acessos.Ip[ip].NumeroAcessosNoSegundo,
+		BloqueadoAte:           segundoAtual + int64(envConfig.BlockIpTime),
 	}
 }
 
-func BloquearToken(token string) {
+func bloquearToken(segundoAtual int64, token string) {
 	Acessos.Tokens[token] = acessoRecord{
-		NumeroAcessosNoSegundo: 0,
-		BloqueadoAte:           time.Now().Add(time.Second * time.Duration(envConfig.BlockTokenTime)),
+		NumeroAcessosNoSegundo: Acessos.Tokens[token].NumeroAcessosNoSegundo,
+		BloqueadoAte:           segundoAtual + int64(envConfig.BlockTokenTime),
 	}
 }
 
-func VerificaBloqueio(segundo int64, ip string, token string) error {
-	if Acessos.Ip[ip].BloqueadoAte.After(time.Now()) {
-		return errors.New("IP bloqueado até " + Acessos.Ip[ip].BloqueadoAte.String())
+func VerificaBloqueio(segundoAtual int64, ip string, token string) error {
+	if Acessos.Ip[ip].BloqueadoAte >= segundoAtual {
+		return errors.New("IP bloqueado até " + strconv.FormatInt(Acessos.Ip[ip].BloqueadoAte, 10))
 	}
-	if Acessos.Tokens[token].BloqueadoAte.After(time.Now()) {
-		return errors.New("Token bloqueado até " + Acessos.Tokens[token].BloqueadoAte.String())
+	if Acessos.Tokens[token].BloqueadoAte >= segundoAtual {
+		return errors.New("Token bloqueado até " + strconv.FormatInt(Acessos.Tokens[token].BloqueadoAte, 10))
 	}
 	return nil
 }
@@ -65,25 +72,38 @@ func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, 
 
 func ValidaAcesso(segundo int64, ip string, token string) error {
 	if err := VerificaBloqueio(segundo, ip, token); err != nil {
+		log.Println(err)
+		return errors.New(LIMITED_MESSAGE)
 	}
-
 	RegistraAcessoTokenErr := RegistraAcessoToken(segundo, token)
 	if RegistraAcessoTokenErr != nil && RegistraAcessoTokenErr.Error() == tokenNotFound {
-		return RegistraAcessoIp(segundo, ip)
+		RegistraAcessoIpErro := RegistraAcessoIp(segundo, ip)
+		if RegistraAcessoIpErro != nil {
+			log.Println(RegistraAcessoIpErro)
+			bloquearIp(segundo, ip)
+			return errors.New(LIMITED_MESSAGE)
+		}
+		// return bloquearIpErro
+		return errors.New(LIMITED_MESSAGE)
 	}
+	log.Println(RegistraAcessoTokenErr)
+	bloquearToken(segundo, token)
 	return RegistraAcessoTokenErr
 }
 
 func RegistraAcessoIp(segundo int64, ip string) error {
 	if segundo != segundoRegistrado {
 		segundoRegistrado = segundo
-		Acessos.Ip = make(map[string]acessoRecord)
+		Acessos.Ip[ip] = acessoRecord{}
 	}
-	println("Acessos.Ip[ip]", Acessos.Ip[ip])
+	pretty.Println(Acessos.Ip[ip])
 	if Acessos.Ip[ip].NumeroAcessosNoSegundo >= envConfig.IpMaxReqPerSecond {
 		return errors.New(exceedIpLimit + ip)
 	}
-	Acessos.Ip[ip].++
+	ar := acessoRecord{
+		NumeroAcessosNoSegundo: Acessos.Ip[ip].NumeroAcessosNoSegundo + 1,
+		BloqueadoAte:           Acessos.Ip[ip].BloqueadoAte}
+	Acessos.Ip[ip] = ar
 	return nil
 }
 
@@ -92,13 +112,17 @@ func RegistraAcessoToken(segundo int64, token string) error {
 		log.Println(tokenNotFound)
 		return errors.New(tokenNotFound)
 	}
+	pretty.Println(Acessos.Tokens[token])
 	if segundo != segundoRegistrado {
 		segundoRegistrado = segundo
-		Acessos.Tokens = make(map[string]int)
+		Acessos.Tokens[token] = acessoRecord{}
 	}
-	if Acessos.Tokens[token] >= envConfig.TokensMaxReqPerSecond[token] {
+	if Acessos.Tokens[token].NumeroAcessosNoSegundo >= envConfig.TokensMaxReqPerSecond[token] {
 		return errors.New(exceedTokenLimit + token)
 	}
-	Acessos.Tokens[token]++
+	ar := acessoRecord{
+		NumeroAcessosNoSegundo: Acessos.Tokens[token].NumeroAcessosNoSegundo + 1,
+		BloqueadoAte:           Acessos.Tokens[token].BloqueadoAte}
+	Acessos.Tokens[token] = ar
 	return nil
 }

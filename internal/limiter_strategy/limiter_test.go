@@ -8,39 +8,52 @@ import (
 )
 
 func TestValidaPorToken(t *testing.T) {
-	Init()
 	segundoRegistrado = int64(1)
 	segundo := int64(1)
-	configs.Config.IpMaxReqPerSecond = 1
-	configs.Config.TokensMaxReqPerSecond = map[string]int{"A": 1}
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"A": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	ip := "192.168.1.1"
 	token := "A"
 	v := ValidaAcesso(segundo, ip, token)
 	assert.Nil(t, v)
 	v = ValidaAcesso(segundo, ip, token)
-	assert.Contains(t, v.Error(), exceedTokenLimit, "Erro segundo acesso")
+	assert.Contains(t, v.Error(), LIMITED_MESSAGE, "Erro segundo acesso")
 	v = ValidaAcesso(segundo, ip, token)
-	assert.Contains(t, v.Error(), exceedTokenLimit)
+	assert.Contains(t, v.Error(), LIMITED_MESSAGE)
 }
 
 func TestValidaPorIP(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"A": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.IpMaxReqPerSecond = 1
-	configs.Config.TokensMaxReqPerSecond = map[string]int{"A": 10}
 	ip := "192.168.1.1"
 	token := "Outro"
 	v := ValidaAcesso(segundo, ip, token)
 	assert.Nil(t, v)
 	v = ValidaAcesso(segundo, ip, token)
-	assert.Contains(t, v.Error(), exceedIpLimit)
+	assert.Contains(t, v.Error(), LIMITED_MESSAGE)
 	v = ValidaAcesso(segundo, ip, token)
-	assert.Contains(t, v.Error(), exceedIpLimit)
+	assert.Contains(t, v.Error(), LIMITED_MESSAGE)
 }
 
 func TestMesmoSegundoAcessoIpLiberado(t *testing.T) {
-	Init()
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"A": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundoRegistrado = int64(1)
 	segundo := int64(1)
 	configs.Config.IpMaxReqPerSecond = 1
@@ -52,10 +65,14 @@ func TestMesmoSegundoAcessoIpLiberado(t *testing.T) {
 }
 
 func TestMesmoSegundoAcessoIpBloqueado(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"A": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.IpMaxReqPerSecond = 1
 	ip := "192.168.1.1"
 	err := RegistraAcessoIp(segundo, ip)
 	if err != nil {
@@ -68,10 +85,14 @@ func TestMesmoSegundoAcessoIpBloqueado(t *testing.T) {
 }
 
 func TestMesmoSegundoAcessoTokenLiberado(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.TokensMaxReqPerSecond = map[string]int{"token1": 1}
 	token := "token1"
 	err := RegistraAcessoToken(segundo, token)
 	if err != nil {
@@ -80,10 +101,14 @@ func TestMesmoSegundoAcessoTokenLiberado(t *testing.T) {
 }
 
 func TestMesmoSegundoAcessoTokenBloqueado(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.TokensMaxReqPerSecond = map[string]int{"token1": 1}
 	token := "token1"
 	err := RegistraAcessoToken(segundo, token)
 	if err != nil {
@@ -96,10 +121,14 @@ func TestMesmoSegundoAcessoTokenBloqueado(t *testing.T) {
 }
 
 func TestOutroSegundoAcessoIpLiberadoDentroCota(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(2)
-	configs.Config.IpMaxReqPerSecond = 1
 	ip := "192.168.1.1"
 	err := RegistraAcessoIp(segundo, ip)
 	if err != nil {
@@ -108,10 +137,14 @@ func TestOutroSegundoAcessoIpLiberadoDentroCota(t *testing.T) {
 }
 
 func TestOutroSegundoAcessoIpLiberado(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.IpMaxReqPerSecond = 1
 	ip := "192.168.1.1"
 	err := RegistraAcessoIp(segundo, ip)
 	if err != nil {
@@ -126,10 +159,14 @@ func TestOutroSegundoAcessoIpLiberado(t *testing.T) {
 }
 
 func TestOutroSegundoAcessoIpBloqueado(t *testing.T) {
-	Init()
-	segundoRegistrado = int64(1)
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Init(1, cfg)
 	segundo := int64(1)
-	configs.Config.IpMaxReqPerSecond = 1
 	ip := "192.168.1.1"
 	err := RegistraAcessoIp(segundo, ip)
 	if err != nil {
@@ -145,31 +182,3 @@ func TestOutroSegundoAcessoIpBloqueado(t *testing.T) {
 		t.Errorf("Erro ao registrar acesso: %s", err)
 	}
 }
-
-// func TestMesmoSegundoAcessoTokenLiberado(t *testing.T) {
-// 	Init()
-// 	segundoRegistrado = int64(1)
-// 	segundo := int64(1)
-// 	configs.Config.Tokens = map[string]int{"token1": 1}
-// 	token := "token1"
-// 	err := RegistraAcessoToken(segundo, token)
-// 	if err != nil {
-// 		t.Errorf("Erro ao registrar acesso: %s", err)
-// 	}
-// }
-
-// func TestMesmoSegundoAcessoTokenBloqueado(t *testing.T) {
-// 	Init()
-// 	segundoRegistrado = int64(1)
-// 	segundo := int64(1)
-// 	configs.Config.Tokens = map[string]int{"token1": 1}
-// 	token := "token1"
-// 	err := RegistraAcessoToken(segundo, token)
-// 	if err != nil {
-// 		t.Errorf("Erro ao registrar acesso: %s", err)
-// 	}
-// 	err = RegistraAcessoToken(segundo, token)
-// 	if err == nil {
-// 		t.Errorf("Erro ao registrar acesso: %s", err)
-// 	}
-// }

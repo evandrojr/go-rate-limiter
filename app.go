@@ -20,9 +20,11 @@ var estrategiaEscolhida limiterstrategy.TipoEstrategiaStruct
 
 func main() {
 	configs.LoadConfig()
-	limiterstrategy.Init()
+	now := time.Now()
+	segundoRegistrado := now.Unix()
 
 	estrategiaEscolhida.SetStrategy(limiterstrategy.LimiterStrategyStruct{})
+	estrategiaEscolhida.GetStrategy().Init(segundoRegistrado, configs.Config)
 
 	r := chi.NewRouter()
 
@@ -51,7 +53,6 @@ func RequestLogger(next http.Handler) http.Handler {
 		pretty.Println(r.Header, r.RemoteAddr, r.Referer())
 		segundoRegistrado := time.Now().Unix()
 		ip := strings.Split(r.RemoteAddr, ":")[0]
-		estrat := estrategiaEscolhida.GetStrategy()
 		token := ""
 		for k, v := range r.Header {
 			if strings.EqualFold(k, TOKEN_KEY) {
@@ -59,7 +60,7 @@ func RequestLogger(next http.Handler) http.Handler {
 				break
 			}
 		}
-		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrat, segundoRegistrado, ip, token)
+		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida.GetStrategy(), segundoRegistrado, ip, token)
 		log.Println(validaAcesso)
 		next.ServeHTTP(w, r)
 	})
