@@ -30,16 +30,16 @@ type acessos struct {
 var envConfig configs.EnvConfig
 
 func (l LimiterStrategyStruct) Init(segundoRegistrado int64, configs configs.EnvConfig) {
-	Init(segundoRegistrado, configs)
+	Initialize(segundoRegistrado, configs)
 }
 
-func Init(_segundoRegistrado int64, configs configs.EnvConfig) {
+func Initialize(secReg int64, configs configs.EnvConfig) {
 	envConfig = configs
 	Acessos = acessos{
 		Ip:     make(map[string]acessoRecord),
 		Tokens: make(map[string]acessoRecord),
 	}
-	segundoRegistrado = _segundoRegistrado
+	segundoRegistrado = secReg
 }
 
 func bloquearIp(segundoAtual int64, ip string) {
@@ -56,7 +56,7 @@ func bloquearToken(segundoAtual int64, token string) {
 	}
 }
 
-func VerificaBloqueio(segundoAtual int64, ip string, token string) error {
+func verificaBloqueio(segundoAtual int64, ip string, token string) error {
 	if Acessos.Ip[ip].BloqueadoAte >= segundoAtual {
 		return errors.New("IP bloqueado até " + strconv.FormatInt(Acessos.Ip[ip].BloqueadoAte, 10))
 	}
@@ -67,31 +67,31 @@ func VerificaBloqueio(segundoAtual int64, ip string, token string) error {
 }
 
 func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
-	return ValidaAcesso(segundoRegistrado, ip, token)
+	return validaAcesso(segundoRegistrado, ip, token)
 }
 
-func ValidaAcesso(segundo int64, ip string, token string) error {
-	if err := VerificaBloqueio(segundo, ip, token); err != nil {
+func validaAcesso(segundo int64, ip string, token string) error {
+
+	if err := verificaBloqueio(segundo, ip, token); err != nil {
 		log.Println(err)
 		return errors.New(LIMITED_MESSAGE)
 	}
-	RegistraAcessoTokenErr := RegistraAcessoToken(segundo, token)
+	RegistraAcessoTokenErr := registraAcessoToken(segundo, token)
 	if RegistraAcessoTokenErr != nil && RegistraAcessoTokenErr.Error() == tokenNotFound {
-		RegistraAcessoIpErro := RegistraAcessoIp(segundo, ip)
+		RegistraAcessoIpErro := registraAcessoIp(segundo, ip)
 		if RegistraAcessoIpErro != nil {
 			log.Println(RegistraAcessoIpErro)
 			bloquearIp(segundo, ip)
 			return errors.New(LIMITED_MESSAGE)
 		}
-		// return bloquearIpErro
-		return errors.New(LIMITED_MESSAGE)
+		return nil
 	}
 	log.Println(RegistraAcessoTokenErr)
 	bloquearToken(segundo, token)
 	return RegistraAcessoTokenErr
 }
 
-func RegistraAcessoIp(segundo int64, ip string) error {
+func registraAcessoIp(segundo int64, ip string) error {
 	if segundo != segundoRegistrado {
 		segundoRegistrado = segundo
 		Acessos.Ip[ip] = acessoRecord{}
@@ -107,7 +107,7 @@ func RegistraAcessoIp(segundo int64, ip string) error {
 	return nil
 }
 
-func RegistraAcessoToken(segundo int64, token string) error {
+func registraAcessoToken(segundo int64, token string) error {
 	if envConfig.TokensMaxReqPerSecond[token] == 0 {
 		log.Println(tokenNotFound)
 		return errors.New(tokenNotFound)
