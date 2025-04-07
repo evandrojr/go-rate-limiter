@@ -195,7 +195,7 @@ func TestMultiplosAcessos(t *testing.T) {
 	}
 	Initialize(1, cfg)
 
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 100000; i++ {
 		go func(i int, t *testing.T) {
 			err := valAcesso(i, t)
 			if err != nil {
