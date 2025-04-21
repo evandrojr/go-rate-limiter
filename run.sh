@@ -7,4 +7,4 @@
 
 echo "Banco de dados pronto. Iniciando aplicação..."
 # cd cmd/ordersystem && go run main.go wire_gen.go
-go run server/server.go
+go run app.go
