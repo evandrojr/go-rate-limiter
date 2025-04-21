@@ -33,7 +33,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	// Middleware personalizado
-	r.Use(RequestLogger)
+	r.Use(RequestLimiter)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Bem-vindo!"))
@@ -47,7 +47,7 @@ func main() {
 	http.ListenAndServe(":8080", r)
 }
 
-func RequestLogger(next http.Handler) http.Handler {
+func RequestLimiter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Método: %s, URL: %s, Host: %s", r.Method, r.URL.Path, r.Host)
 		pretty.Println(r.Header, r.RemoteAddr, r.Referer())
@@ -60,8 +60,11 @@ func RequestLogger(next http.Handler) http.Handler {
 				break
 			}
 		}
-		validaAcesso := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida.GetStrategy(), segundoRegistrado, ip, token)
-		log.Println(validaAcesso)
+		if err := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida.GetStrategy(), segundoRegistrado, ip, token); err != nil {
+			log.Println("Acesso negado:", err)
+			http.Error(w, err.Error(), http.StatusTooManyRequests)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
