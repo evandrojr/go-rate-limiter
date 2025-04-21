@@ -13,6 +13,7 @@ import (
 )
 
 var acessosMutex sync.Mutex
+var segundoRegistradoMutex sync.Mutex
 
 var _segundoRegistrado int64
 var _acessos acessosType
@@ -59,26 +60,31 @@ func Initialize(secReg int64, configs configs.EnvConfig) {
 }
 
 func bloquearIp(segundoAtual int64, ip string) {
-
-	acessos.Ip[ip] = acessoRecord{
-		NumeroAcessosNoSegundo: acessos.Ip[ip].NumeroAcessosNoSegundo,
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
+	_acessos.Ip[ip] = acessoRecord{
+		NumeroAcessosNoSegundo: _acessos.Ip[ip].NumeroAcessosNoSegundo,
 		BloqueadoAte:           segundoAtual + int64(envConfig.BlockIpTime),
 	}
 }
 
 func bloquearToken(segundoAtual int64, token string) {
-	acessos.Tokens[token] = acessoRecord{
-		NumeroAcessosNoSegundo: acessos.Tokens[token].NumeroAcessosNoSegundo,
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
+	_acessos.Tokens[token] = acessoRecord{
+		NumeroAcessosNoSegundo: _acessos.Tokens[token].NumeroAcessosNoSegundo,
 		BloqueadoAte:           segundoAtual + int64(envConfig.BlockTokenTime),
 	}
 }
 
 func verificaBloqueio(segundoAtual int64, ip string, token string) error {
-	if acessos.Ip[ip].BloqueadoAte >= segundoAtual {
-		return errors.New("IP bloqueado até " + strconv.FormatInt(acessos.Ip[ip].BloqueadoAte, 10))
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
+	if _acessos.Ip[ip].BloqueadoAte >= segundoAtual {
+		return errors.New("IP bloqueado até " + strconv.FormatInt(_acessos.Ip[ip].BloqueadoAte, 10))
 	}
-	if acessos.Tokens[token].BloqueadoAte >= segundoAtual {
-		return errors.New("Token bloqueado até " + strconv.FormatInt(acessos.Tokens[token].BloqueadoAte, 10))
+	if _acessos.Tokens[token].BloqueadoAte >= segundoAtual {
+		return errors.New("Token bloqueado até " + strconv.FormatInt(_acessos.Tokens[token].BloqueadoAte, 10))
 	}
 	return nil
 }
@@ -109,37 +115,45 @@ func validaAcesso(segundo int64, ip string, token string) error {
 }
 
 func registraAcessoIp(segundo int64, ip string) error {
-	if segundo != segundoRegistrado {
-		segundoRegistrado = segundo
-		acessos.Ip[ip] = acessoRecord{}
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
+	segundoRegistradoMutex.Lock()
+	defer segundoRegistradoMutex.Unlock()
+	if segundo != _segundoRegistrado {
+		_segundoRegistrado = segundo
+		_acessos.Ip[ip] = acessoRecord{}
 	}
-	pretty.Println(acessos.Ip[ip])
-	if acessos.Ip[ip].NumeroAcessosNoSegundo >= envConfig.IpMaxReqPerSecond {
+	pretty.Println(_acessos.Ip[ip])
+	if _acessos.Ip[ip].NumeroAcessosNoSegundo >= envConfig.IpMaxReqPerSecond {
 		return errors.New(exceedIpLimit + ip)
 	}
 	ar := acessoRecord{
-		NumeroAcessosNoSegundo: acessos.Ip[ip].NumeroAcessosNoSegundo + 1,
-		BloqueadoAte:           acessos.Ip[ip].BloqueadoAte}
-	acessos.Ip[ip] = ar
+		NumeroAcessosNoSegundo: _acessos.Ip[ip].NumeroAcessosNoSegundo + 1,
+		BloqueadoAte:           _acessos.Ip[ip].BloqueadoAte}
+	_acessos.Ip[ip] = ar
 	return nil
 }
 
 func registraAcessoToken(segundo int64, token string) error {
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
+	segundoRegistradoMutex.Lock()
+	defer segundoRegistradoMutex.Unlock()
 	if envConfig.TokensMaxReqPerSecond[token] == 0 {
 		log.Println(tokenNotFound)
 		return errors.New(tokenNotFound)
 	}
-	pretty.Println(acessos.Tokens[token])
-	if segundo != segundoRegistrado {
-		segundoRegistrado = segundo
-		acessos.Tokens[token] = acessoRecord{}
+	pretty.Println(_acessos.Tokens[token])
+	if segundo != _segundoRegistrado {
+		_segundoRegistrado = segundo
+		_acessos.Tokens[token] = acessoRecord{}
 	}
-	if acessos.Tokens[token].NumeroAcessosNoSegundo >= envConfig.TokensMaxReqPerSecond[token] {
+	if _acessos.Tokens[token].NumeroAcessosNoSegundo >= envConfig.TokensMaxReqPerSecond[token] {
 		return errors.New(exceedTokenLimit + token)
 	}
 	ar := acessoRecord{
-		NumeroAcessosNoSegundo: acessos.Tokens[token].NumeroAcessosNoSegundo + 1,
-		BloqueadoAte:           acessos.Tokens[token].BloqueadoAte}
-	acessos.Tokens[token] = ar
+		NumeroAcessosNoSegundo: _acessos.Tokens[token].NumeroAcessosNoSegundo + 1,
+		BloqueadoAte:           _acessos.Tokens[token].BloqueadoAte}
+	_acessos.Tokens[token] = ar
 	return nil
 }
