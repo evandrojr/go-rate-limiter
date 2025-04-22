@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
+	"github.com/evandrojr/go-rate-limiter/internal/redis"
 	"github.com/kr/pretty"
 
 	"sync"
@@ -90,7 +91,12 @@ func verificaBloqueio(segundoAtual int64, ip string, token string) error {
 }
 
 func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
-	return validaAcesso(segundoRegistrado, ip, token)
+	error := validaAcesso(segundoRegistrado, ip, token)
+	if error != nil {
+		redis.Set("segundoRegistrado: " + strconv.FormatInt(segundoRegistrado, 10) + " ip: " + ip + " token: " + token)
+		log.Println(error)
+	}
+	return error
 }
 
 func validaAcesso(segundo int64, ip string, token string) error {

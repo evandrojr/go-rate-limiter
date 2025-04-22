@@ -22,7 +22,7 @@ func (e *TipoEstrategiaStruct) SetStrategy(strategy LimiterStrategyI) {
 	e.estrategy = strategy
 }
 
-// Permite definir a estratégia a ser utilizada.
+// Permite ler a estratégia utilizada.
 func (e *TipoEstrategiaStruct) GetStrategy() LimiterStrategyI {
 	return e.estrategy
 }
