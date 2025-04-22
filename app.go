@@ -14,7 +14,7 @@ import (
 	"github.com/kr/pretty"
 )
 
-const TOKEN_KEY = "Apt-Key"
+const TOKEN_KEY = "APT_KEY"
 
 var estrategiaEscolhida limiterstrategy.TipoEstrategiaStruct
 

@@ -208,7 +208,100 @@ func TestMultiplosAcessos(t *testing.T) {
 
 	}
 }
+func TestValidaAcessoTokenBloqueado(t *testing.T) {
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 1},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Initialize(1, cfg)
+	segundo := int64(1)
+	token := "token1"
+	ip := "192.168.1.1"
 
+	// First access should pass
+	err := validaAcesso(segundo, ip, token)
+	assert.Nil(t, err)
+
+	// Second access should block the token
+	err = validaAcesso(segundo, ip, token)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
+}
+
+func TestValidaAcessoIpBloqueado(t *testing.T) {
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 0},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Initialize(1, cfg)
+	segundo := int64(1)
+	token := "token1"
+	ip := "192.168.1.1"
+
+	// First access should pass
+	err := validaAcesso(segundo, ip, token)
+	assert.Nil(t, err)
+
+	// Second access should block the IP
+	err = validaAcesso(segundo, ip, token)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
+}
+
+func TestValidaAcessoTokenNotFound(t *testing.T) {
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{},
+		IpMaxReqPerSecond:     1,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Initialize(1, cfg)
+	segundo := int64(1)
+	token := "unknown_token"
+	ip := "192.168.1.1"
+
+	// Access with an unknown token should fallback to IP validation
+	err := validaAcesso(segundo, ip, token)
+	assert.Nil(t, err)
+
+	// Second access should block the IP
+	err = validaAcesso(segundo, ip, token)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
+}
+
+func TestValidaAcessoMultipleRequests(t *testing.T) {
+	cfg := configs.EnvConfig{
+		TokensMaxReqPerSecond: map[string]int{"token1": 3},
+		IpMaxReqPerSecond:     5,
+		BlockIpTime:           2,
+		BlockTokenTime:        2,
+	}
+	Initialize(1, cfg)
+	segundo := int64(1)
+	token := "token1"
+	ip := "192.168.1.1"
+
+	// First three requests should pass
+	for i := 0; i < 3; i++ {
+		err := validaAcesso(segundo, ip, token)
+		assert.Nil(t, err)
+	}
+
+	// Fourth request should block the token
+	err := validaAcesso(segundo, ip, token)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
+
+	// Additional requests should still block the token
+	err = validaAcesso(segundo, ip, token)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
+}
 func valAcesso(i int) {
 	ip := strconv.Itoa(i)
 	validaAcesso(int64(1), ip, "token"+ip)

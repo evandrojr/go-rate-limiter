@@ -22,17 +22,6 @@ var tokenNotFound = "TOKEN_NOT_FOUND"
 var exceedIpLimit = "limite de acessos por IP excedido para o IP: "
 var exceedTokenLimit = "limite de acessos por token excedido para o token: "
 
-func readAcessos() acessosType {
-	acessosMutex.Lock()
-	defer acessosMutex.Unlock()
-	return _acessos
-}
-func writeAcessos(a acessosType) {
-	acessosMutex.Lock()
-	defer acessosMutex.Unlock()
-	_acessos = a
-}
-
 const LIMITED_MESSAGE = "you have reached the maximum number of requests or actions allowed within a certain time frame"
 
 type acessoRecord struct {
@@ -52,8 +41,10 @@ func (l LimiterStrategyStruct) Init(segundoRegistrado int64, configs configs.Env
 }
 
 func Initialize(secReg int64, configs configs.EnvConfig) {
+	acessosMutex.Lock()
+	defer acessosMutex.Unlock()
 	envConfig = configs
-	writeAcessos(acessosType{
+	_acessos = (acessosType{
 		Ip:     make(map[string]acessoRecord),
 		Tokens: make(map[string]acessoRecord),
 	})
@@ -93,7 +84,7 @@ func verificaBloqueio(segundoAtual int64, ip string, token string) error {
 func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
 	error := validaAcesso(segundoRegistrado, ip, token)
 	if error != nil {
-		redis.Set("segundoRegistrado: " + strconv.FormatInt(segundoRegistrado, 10) + " ip: " + ip + " token: " + token)
+		redis.RPush("segundoRegistrado: " + strconv.FormatInt(segundoRegistrado, 10) + " ip: " + ip + " token: " + token)
 		log.Println(error)
 	}
 	return error

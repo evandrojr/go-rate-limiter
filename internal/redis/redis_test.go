@@ -5,7 +5,7 @@ import (
 )
 
 func TestRedis(t *testing.T) {
-	e := Set("ss")
+	e := RPush("ss")
 	if e != nil {
 		t.Errorf("Erro ao definir valor no Redis: %v", e)
 	}

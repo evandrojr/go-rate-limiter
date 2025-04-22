@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -13,17 +14,29 @@ var ctx = context.Background()
 var rdb *redis.Client
 
 func NewRedisClient(addr string, password string, db int) {
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     "redis-dev:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+
+	rdb = redis.NewClient(&redis.Options{})
+
+	if os.Getenv("DOCKER_EXECUTION") == "true" {
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     "redis-dev:6379",
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		})
+	} else {
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		})
+	}
+
 }
 
-func Set(value string) error {
+func RPush(value string) error {
 
 	if rdb == nil {
-		NewRedisClient("localhost:6379", "", 0)
+		NewRedisClient("", "", 0)
 	}
 
 	res1, err := rdb.RPush(ctx, "limits:log", "limit:"+value).Result()

@@ -1,11 +1,9 @@
 To do -------------------------------------------------------------------
 
-Fazer funcionar a identificação do token
-Strategy para injetar o Redis
-
 
 Doing -------------------------------------------------------------------
 
+Strategy para injetar o Redis
 
 Done  -------------------------------------------------------------------
 
@@ -13,5 +11,5 @@ Carregando variáveis de ambiente
 O servidor web deve responder na porta 8080.
 O rate limiter deve permitir a configuração do número máximo de requisições permitidas por segundo.
 injetar o middleware
-
+Fazer funcionar a identificação do token
 
