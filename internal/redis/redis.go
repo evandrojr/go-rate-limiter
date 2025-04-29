@@ -13,7 +13,7 @@ var ctx = context.Background()
 
 var rdb *redis.Client
 
-func NewRedisClient(addr string, password string, db int) {
+func NewRedisClient(addr []string, password string, db int) {
 
 	rdb = redis.NewClient(&redis.Options{})
 
@@ -36,13 +36,13 @@ func NewRedisClient(addr string, password string, db int) {
 func RPush(value string) error {
 
 	if rdb == nil {
-		NewRedisClient("", "", 0)
+		NewRedisClient(nil, "", 0)
 	}
 
 	res1, err := rdb.RPush(ctx, "limits:log", "limit:"+value).Result()
 
 	if err != nil {
-		log.Println("#######################333", err)
+		log.Println("#######################", err)
 		return err
 	}
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@", res1) // >>> 1
