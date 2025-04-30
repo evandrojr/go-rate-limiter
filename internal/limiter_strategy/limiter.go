@@ -7,7 +7,6 @@ import (
 	"sync/atomic"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
-	"github.com/evandrojr/go-rate-limiter/internal/redis"
 	"github.com/kr/pretty"
 
 	"sync"

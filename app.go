@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
 	limiterstrategy "github.com/evandrojr/go-rate-limiter/internal/limiter_strategy"
+	persistencystrategy "github.com/evandrojr/go-rate-limiter/internal/persistency_strategy"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -16,15 +18,27 @@ import (
 
 const TOKEN_KEY = "APT_KEY"
 
-var estrategiaEscolhida limiterstrategy.TipoEstrategiaStruct
+var estrategiaLimiterEscolhida limiterstrategy.TipoEstrategiaStruct
+var estrategiaPersistenciaEscolhida persistencystrategy.TipoEstrategiaStruct
 
 func main() {
 	configs.LoadConfig()
 	now := time.Now()
 	segundoRegistrado := now.Unix()
+	var loggerConfig []string
+	redisHostname := configs.Config.DBHost
+	// loggerConfig = append(loggerConfig, configs.Config.DBPort)
 
-	estrategiaEscolhida.SetStrategy(limiterstrategy.LimiterStrategyStruct{})
-	estrategiaEscolhida.GetStrategy().Init(segundoRegistrado, configs.Config)
+	if os.Getenv("DOCKER_EXECUTION") == "true" {
+		redisHostname = "redis-dev"
+	}
+	loggerConfig = append(loggerConfig, configs.Config.DBHost)
+
+	estrategiaPersistenciaEscolhida.SetStrategy(persistencystrategy.PersistencyStrategyStruct{})
+	estrategiaPersistenciaEscolhida.GetStrategy().Init(loggerConfig)
+
+	estrategiaLimiterEscolhida.SetStrategy(limiterstrategy.LimiterStrategyStruct{})
+	estrategiaLimiterEscolhida.GetStrategy().Init(segundoRegistrado, configs.Config)
 
 	r := chi.NewRouter()
 
@@ -60,7 +74,7 @@ func RequestLimiter(next http.Handler) http.Handler {
 				break
 			}
 		}
-		if err := limiterstrategy.ValidaAcessoPolimorfico(estrategiaEscolhida.GetStrategy(), segundoRegistrado, ip, token); err != nil {
+		if err := limiterstrategy.ValidaAcessoPolimorfico(estrategiaLimiterEscolhida.GetStrategy(), segundoRegistrado, ip, token); err != nil {
 			log.Println("Acesso negado:", err)
 			http.Error(w, err.Error(), http.StatusTooManyRequests)
 			return

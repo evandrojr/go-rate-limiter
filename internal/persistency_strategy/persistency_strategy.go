@@ -1,11 +1,9 @@
 package persistencystrategy
 
-import "github.com/evandrojr/go-rate-limiter/configs"
-
 type PersistencyStrategyStruct struct{}
 
 type PersistencyStrategyI interface {
-	Init(segundoRegistrado int64, configs configs.EnvConfig)
+	Init(config []string)
 	Log(msg string) error
 }
 

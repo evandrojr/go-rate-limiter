@@ -1,4 +1,4 @@
-package redis
+package persistencystrategy
 
 import (
 	"context"
@@ -13,7 +13,21 @@ var ctx = context.Background()
 
 var rdb *redis.Client
 
-func NewRedisClient(addr []string, password string, db int) {
+func (l PersistencyStrategyStruct) Init(config []string) {
+	NewRedisClient(config)
+}
+
+func (l PersistencyStrategyStruct) Log(msg string) error {
+	err := RPush(msg)
+	if err != nil {
+		log.Println("Error pushing to Redis:", err)
+		return err
+	}
+	log.Println("Message pushed to Redis:", msg)
+	return nil
+}
+
+func NewRedisClient(config []string) {
 
 	rdb = redis.NewClient(&redis.Options{})
 
@@ -36,7 +50,8 @@ func NewRedisClient(addr []string, password string, db int) {
 func RPush(value string) error {
 
 	if rdb == nil {
-		NewRedisClient(nil, "", 0)
+		log.Println("Redis client not initialized")
+		return fmt.Errorf("redis client not initialized")
 	}
 
 	res1, err := rdb.RPush(ctx, "limits:log", "limit:"+value).Result()
