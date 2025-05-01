@@ -2,19 +2,30 @@
 
 Os requisitos estão em [Requisitos.md](Requisitos.md)
 
-##
-
-Execução:
+## Execução:
 
 `docker-compose up`
 
-## 
+## Testes unitários:
 
-Testes unitários:
+São executados antes do inicío da aplicação mais 300k requisições 
 
-go test -race -v  ./...
+go test -race  ./...
 
-##
+## Testes com apache AB
+
+Rode com docker-compose up -d senão a escrita de log no terminal vai deixar os testes muito lentos
+```
+
+
+sudo apt-get update && sudo apt-get install -y apache2-utils
+
+ab -n 100000 -c 10 -H "Host: localhost:8000" -H "Content-Type: application/json" http://localhost:8080/
+
+ab -n 100000 -c 10 -H "Host: localhost:8000" -H "Content-Type: application/json" -H "APT_KEY: DESCONHECIDO" http://localhost:8080/
+
+ab -n 100000 -c 10 -H "Host: localhost:8000" -H "Content-Type: application/json" -H "APT_KEY: TRAVAEU" http://localhost:8080/
+```
 
 Ver os log no Redis
 

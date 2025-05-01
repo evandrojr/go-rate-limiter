@@ -36,6 +36,9 @@ func LoadConfig() {
 		panic("erro ao carregar o .env:")
 	}
 
+	Config.DBHost = viper.GetString("DB_HOST")
+	fmt.Println("DB_HOST:", Config.DBHost)
+
 	Config.IpMaxReqPerSecond = viper.GetInt("REQUESTS_IP_MAX")
 	fmt.Println(Config.IpMaxReqPerSecond)
 

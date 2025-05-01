@@ -27,12 +27,15 @@ func main() {
 	segundoRegistrado := now.Unix()
 	var loggerConfig []string
 	redisHostname := configs.Config.DBHost
-	loggerConfig = append(loggerConfig, redisHostname)
+	pretty.Print(configs.Config)
 
-	if os.Getenv("DOCKER_EXECUTION") == "true" {
-		redisHostname = "redis-dev"
+	dockerExecution := os.Getenv("DOCKER_EXECUTION")
+	pretty.Println(dockerExecution)
+	if dockerExecution != "true" {
+		redisHostname = "localhost"
 	}
-	loggerConfig = append(loggerConfig, configs.Config.DBHost)
+	loggerConfig = append(loggerConfig, redisHostname)
+	pretty.Println(loggerConfig)
 
 	estrategiaPersistenciaEscolhida.SetStrategy(persistencystrategy.PersistencyStrategyStruct{})
 	estrategiaPersistenciaEscolhida.GetStrategy().Init(loggerConfig)

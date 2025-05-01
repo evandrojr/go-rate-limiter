@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/kr/pretty"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,13 +29,15 @@ func (l PersistencyStrategyStruct) Log(msg string) error {
 
 func NewRedisClient(config []string) {
 
-	rdb = redis.NewClient(&redis.Options{})
-
-	rdb = redis.NewClient(&redis.Options{
+	opt := redis.Options{
 		Addr:     config[0] + ":6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
-	})
+	}
+
+	pretty.Println(opt)
+
+	rdb = redis.NewClient(&opt)
 
 	rdb.Ping(ctx)
 	if err := rdb.Ping(ctx).Err(); err != nil {
@@ -55,10 +58,10 @@ func RPush(value string) error {
 	res1, err := rdb.RPush(ctx, "limits:log", "limit:"+value).Result()
 
 	if err != nil {
-		log.Println("#######################", err)
+		log.Println("Erro gravando no redis", err)
 		return err
 	}
-	fmt.Println("@@@@@@@@@@@@@@@@@@@@", res1) // >>> 1
+	fmt.Println("Gravado no redis", res1) // >>> 1
 	return nil
 }
 
