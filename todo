@@ -1,14 +1,14 @@
 To do -------------------------------------------------------------------
 
-Executar testes unitários quando o docker subir
 
 
 Doing -------------------------------------------------------------------
 
-Strategy para injetar o Redis
 
 Done  -------------------------------------------------------------------
 
+Executar testes unitários quando o docker subir
+Strategy para injetar o Redis
 Carregando variáveis de ambiente
 O servidor web deve responder na porta 8080.
 O rate limiter deve permitir a configuração do número máximo de requisições permitidas por segundo.
