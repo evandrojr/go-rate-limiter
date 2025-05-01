@@ -27,7 +27,7 @@ func main() {
 	segundoRegistrado := now.Unix()
 	var loggerConfig []string
 	redisHostname := configs.Config.DBHost
-	// loggerConfig = append(loggerConfig, configs.Config.DBPort)
+	loggerConfig = append(loggerConfig, redisHostname)
 
 	if os.Getenv("DOCKER_EXECUTION") == "true" {
 		redisHostname = "redis-dev"
@@ -38,7 +38,7 @@ func main() {
 	estrategiaPersistenciaEscolhida.GetStrategy().Init(loggerConfig)
 
 	estrategiaLimiterEscolhida.SetStrategy(limiterstrategy.LimiterStrategyStruct{})
-	estrategiaLimiterEscolhida.GetStrategy().Init(segundoRegistrado, configs.Config)
+	estrategiaLimiterEscolhida.GetStrategy().Init(segundoRegistrado, configs.Config, estrategiaPersistenciaEscolhida.GetStrategy())
 
 	r := chi.NewRouter()
 

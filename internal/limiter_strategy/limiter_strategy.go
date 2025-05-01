@@ -8,7 +8,7 @@ import (
 type LimiterStrategyStruct struct{}
 
 type LimiterStrategyI interface {
-	Init(segundoRegistrado int64, configs configs.EnvConfig, logger persistencystrategy.PersistencyStrategyStruct)
+	Init(segundoRegistrado int64, configs configs.EnvConfig, logger persistencystrategy.PersistencyStrategyI)
 	ValidaAcesso(segundoRegistrado int64, ip string, token string) error
 }
 

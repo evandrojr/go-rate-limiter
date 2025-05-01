@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -31,18 +30,17 @@ func NewRedisClient(config []string) {
 
 	rdb = redis.NewClient(&redis.Options{})
 
-	if os.Getenv("DOCKER_EXECUTION") == "true" {
-		rdb = redis.NewClient(&redis.Options{
-			Addr:     "redis-dev:6379",
-			Password: "", // no password set
-			DB:       0,  // use default DB
-		})
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     config[0] + ":6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	rdb.Ping(ctx)
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		log.Println("Error connecting to Redis:", err)
 	} else {
-		rdb = redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "", // no password set
-			DB:       0,  // use default DB
-		})
+		log.Println("Connected to Redis")
 	}
 
 }

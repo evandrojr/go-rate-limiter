@@ -7,4 +7,5 @@
 
 echo "Banco de dados pronto. Iniciando aplicação..."
 # cd cmd/ordersystem && go run main.go wire_gen.go
-DOCKER_EXECUTION=true go run app.go
+echo "Rodando testes unitários e iniciando aplicação em caso de sucesso..."
+DOCKER_EXECUTION=true go test -race -v ./... && go run app.go

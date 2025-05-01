@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
+	persistencystrategy "github.com/evandrojr/go-rate-limiter/internal/persistency_strategy"
 	"github.com/kr/pretty"
 
 	"sync"
@@ -34,8 +35,10 @@ type acessosType struct {
 }
 
 var envConfig configs.EnvConfig
+var persistentLogger persistencystrategy.PersistencyStrategyI
 
-func (l LimiterStrategyStruct) Init(segundoRegistrado int64, configs configs.EnvConfig) {
+func (l LimiterStrategyStruct) Init(segundoRegistrado int64, configs configs.EnvConfig, logger persistencystrategy.PersistencyStrategyI) {
+	persistentLogger = logger
 	Initialize(segundoRegistrado, configs)
 }
 
@@ -83,7 +86,7 @@ func verificaBloqueio(segundoAtual int64, ip string, token string) error {
 func (l LimiterStrategyStruct) ValidaAcesso(segundoRegistrado int64, ip string, token string) error {
 	error := validaAcesso(segundoRegistrado, ip, token)
 	if error != nil {
-		redis.RPush("segundoRegistrado: " + strconv.FormatInt(segundoRegistrado, 10) + " ip: " + ip + " token: " + token)
+		persistentLogger.Log("segundoRegistrado: " + strconv.FormatInt(segundoRegistrado, 10) + " ip: " + ip + " token: " + token)
 		log.Println(error)
 	}
 	return error

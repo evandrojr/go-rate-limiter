@@ -8,21 +8,21 @@ services:
     volumes:
       - redis-data:/data
 
-  # app:
-  #   build:
-  #     context: .
-  #   container_name: go-rate-limiter
-  #   depends_on:
-  #     - redis
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #   ports:
-  #     - "8080:8080" # Exemplo de porta para a aplicação
-  #   volumes:
-  #     - .:/app
-  #   working_dir: /app
-  #   command: ["./run.sh"]  # Comando para rodar o aplicativo # Ou o comando para rodar sua aplicação  
+  app:
+    build:
+      context: .
+    container_name: go-rate-limiter
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8080:8080" # Exemplo de porta para a aplicação
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["./run.sh"]  # Comando para rodar o aplicativo # Ou o comando para rodar sua aplicação  
 
 volumes:
   redis-data:
