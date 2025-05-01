@@ -60,6 +60,7 @@ func bloquearIp(segundoAtual int64, ip string) {
 		NumeroAcessosNoSegundo: _acessos.Ip[ip].NumeroAcessosNoSegundo,
 		BloqueadoAte:           segundoAtual + int64(envConfig.BlockIpTime),
 	}
+	pretty.Println(_acessos.Ip[ip], segundoAtual, int64(envConfig.BlockIpTime), "-----------------------------------")
 }
 
 func bloquearToken(segundoAtual int64, token string) {

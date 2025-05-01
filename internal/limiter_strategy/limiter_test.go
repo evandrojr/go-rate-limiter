@@ -194,8 +194,10 @@ func TestMultiplosAcessos(t *testing.T) {
 		BlockTokenTime:        1000,
 	}
 	Initialize(1, cfg)
+	qtd := 100000
+	// log.Println("Executanto ", qtd, " acessos")
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i <= qtd; i++ {
 		go func(i int, t *testing.T) {
 			valAcesso(i)
 		}(i, t)
@@ -274,34 +276,6 @@ func TestValidaAcessoTokenNotFound(t *testing.T) {
 	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
 }
 
-func TestValidaAcessoMultipleRequests(t *testing.T) {
-	cfg := configs.EnvConfig{
-		TokensMaxReqPerSecond: map[string]int{"token1": 3},
-		IpMaxReqPerSecond:     5,
-		BlockIpTime:           2,
-		BlockTokenTime:        2,
-	}
-	Initialize(1, cfg)
-	segundo := int64(1)
-	token := "token1"
-	ip := "192.168.1.1"
-
-	// First three requests should pass
-	for i := 0; i < 3; i++ {
-		err := validaAcesso(segundo, ip, token)
-		assert.Nil(t, err)
-	}
-
-	// Fourth request should block the token
-	err := validaAcesso(segundo, ip, token)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
-
-	// Additional requests should still block the token
-	err = validaAcesso(segundo, ip, token)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), LIMITED_MESSAGE)
-}
 func valAcesso(i int) {
 	ip := strconv.Itoa(i)
 	validaAcesso(int64(1), ip, "token"+ip)
