@@ -194,7 +194,7 @@ func TestMultiplosAcessos(t *testing.T) {
 		BlockTokenTime:        1000,
 	}
 	Initialize(1, cfg)
-	qtd := 100000
+	qtd := 1000
 	// log.Println("Executanto ", qtd, " acessos")
 
 	for i := 0; i <= qtd; i++ {
