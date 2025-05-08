@@ -20,11 +20,11 @@ Rode com docker-compose up -d senão a escrita de log no terminal vai deixar os 
 
 sudo apt-get update && sudo apt-get install -y apache2-utils
 
-ab -n 100000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" http://localhost:8080/
+ab -n 1000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" http://localhost:8080/
 
-ab -n 100000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" -H "APT_KEY: DESCONHECIDO" http://localhost:8080/
+ab -n 1000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" -H "APT_KEY: DESCONHECIDO" http://localhost:8080/
 
-ab -n 100000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" -H "APT_KEY: TRAVAEU" http://localhost:8080/
+ab -n 1000 -c 10 -H "Host: localhost:8080" -H "Content-Type: application/json" -H "APT_KEY: TRAVAEU" http://localhost:8080/
 ```
 
 Ver os log no Redis
