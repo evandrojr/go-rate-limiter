@@ -2,6 +2,7 @@ package limiterstrategy
 
 import (
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/evandrojr/go-rate-limiter/configs"
@@ -185,7 +186,6 @@ func TestOutroSegundoAcessoIpBloqueado(t *testing.T) {
 }
 
 func TestMultiplosAcessos(t *testing.T) {
-
 	token1 := "token1"
 	cfg := configs.EnvConfig{
 		TokensMaxReqPerSecond: map[string]int{token1: 3},
@@ -195,21 +195,30 @@ func TestMultiplosAcessos(t *testing.T) {
 	}
 	Initialize(1, cfg)
 	qtd := 1000
-	// log.Println("Executanto ", qtd, " acessos")
 
+	var wg sync.WaitGroup
 	for i := 0; i <= qtd; i++ {
+		wg.Add(3) // Adiciona 3 goroutines ao WaitGroup
+
 		go func(i int, t *testing.T) {
-			valAcesso(i)
-		}(i, t)
-		go func(i int, t *testing.T) {
-			valAcesso(i)
-		}(i, t)
-		go func(i int, t *testing.T) {
+			defer wg.Done() // Marca a goroutine como concluída
 			valAcesso(i)
 		}(i, t)
 
+		go func(i int, t *testing.T) {
+			defer wg.Done()
+			valAcesso(i)
+		}(i, t)
+
+		go func(i int, t *testing.T) {
+			defer wg.Done()
+			valAcesso(i)
+		}(i, t)
 	}
+
+	wg.Wait() // Aguarda todas as goroutines serem concluídas
 }
+
 func TestValidaAcessoTokenBloqueado(t *testing.T) {
 	cfg := configs.EnvConfig{
 		TokensMaxReqPerSecond: map[string]int{"token1": 1},
